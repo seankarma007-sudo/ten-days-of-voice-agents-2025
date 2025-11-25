@@ -1,14 +1,26 @@
 [
-    {
-        "id": "variables",
-        "title": "Variables",
-        "summary": "Variables store values so you can reuse them later...",
-        "sample_question": "What is a variable and why is it useful?"
-    },
-    {
-        "id": "loops",
-        "title": "Loops",
-        "summary": "Loops let you repeat an action multiple times...",
-        "sample_question": "Explain the difference between a for loop and a while loop."
-    }
+  {
+    "id": "variables",
+    "title": "Variables",
+    "summary": "Variables store values in memory so they can be reused later. In Python they don't need a fixed data type.",
+    "sample_question": "What is a variable and why do we use it?"
+  },
+  {
+    "id": "loops",
+    "title": "Loops",
+    "summary": "Loops allow you to run a block of code repeatedly. For loops iterate over sequences, while loops run until a condition changes.",
+    "sample_question": "Explain the key difference between a for loop and a while loop."
+  },
+  {
+    "id": "coding_in_general",
+    "title": "Coding in general",
+    "summary": "Coding in general — (summary TBD)",
+    "sample_question": "Explain Coding in general."
+  },
+  {
+    "id": "prompt_engineering",
+    "title": "Prompt engineering",
+    "summary": "Prompt engineering — (summary TBD)",
+    "sample_question": "Explain Prompt engineering."
+  }
 ]

@@ -1,198 +1,226 @@
-import logging
 import json
-import os
+import asyncio
+import logging
+import traceback
+from datetime import datetime
+from pathlib import Path
 from dotenv import load_dotenv
+from typing import Annotated, Optional, Dict, Any, List
+
 from livekit.agents import (
     Agent,
     AgentSession,
     JobContext,
     JobProcess,
-    MetricsCollectedEvent,
     RoomInputOptions,
     WorkerOptions,
     cli,
-    metrics,
-    tokenize,
     function_tool,
+    RunContext,
+    llm,
+    metrics,
 )
-from livekit.plugins import murf, silero, google, deepgram, noise_cancellation
+
+from livekit.plugins import murf, deepgram, google, silero, noise_cancellation
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
 
 logger = logging.getLogger("agent")
 
-load_dotenv(".env.local")
+env = Path(__file__).parent.parent / ".env.local"
+load_dotenv(env)
 
-def load_content():
+
+# ============================================================
+# JSON STORAGE HELPERS
+# ============================================================
+
+DATA_DIR = Path(__file__).resolve().parent.parent.parent / "shared-data"
+CONTENT_PATH = DATA_DIR / "day4_tutor_content.json"
+
+def load_json(path: Path, default):
+    if not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "w") as f:
+            json.dump(default, f, indent=2)
+        return default
     try:
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        content_path = os.path.join(base_dir, "shared-data", "day4_tutor_content.json")
-        with open(content_path, "r") as f:
+        with open(path, "r") as f:
             return json.load(f)
-    except Exception as e:
-        logger.error(f"Failed to load content: {e}")
-        return []
+    except Exception:
+        return default
 
-CONTENT = load_content()
+def save_json(path: Path, data):
+    with open(path, "w") as f:
+        json.dump(data, f, indent=2)
 
-def get_voice_for_mode(mode: str):
-    if mode == "learn":
-        return "en-US-matthew"
-    elif mode == "quiz":
-        return "en-US-alicia"
-    elif mode == "teach_back":
-        return "en-US-ken"
-    return "en-US-matthew"
 
-class BaseTutorAgent(Agent):
-    def __init__(self, instructions: str):
-        super().__init__(instructions=instructions)
+# ============================================================
+# ACTIVE RECALL COACH AGENT
+# ============================================================
 
+class ActiveRecallCoach(Agent):
+
+    def __init__(self):
+        self.content = load_json(CONTENT_PATH, [])
+
+        self.current_mode = "learn"
+        self.current_concept_id: Optional[str] = None
+
+        # voices for each mode
+        self.voice_ids = {
+            "learn": "en-US-matthew",
+            "quiz": "en-US-alicia",
+            "teach_back": "en-US-ken",
+        }
+
+        super().__init__(instructions=self._build_instructions())
+
+        # livekit session reference (assigned later)
+        self.session_ref: Optional[AgentSession] = None
+
+    # ---------------------------------------------------------
+    # JSON Concept Handling
+    # ---------------------------------------------------------
+    def _get_concept(self, name: str):
+        """Return concept dict if exists."""
+        name_lower = name.strip().lower()
+        for c in self.content:
+            if c["id"].lower() == name_lower:
+                return c
+            if c["title"].lower() == name_lower:
+                return c
+        return None
+
+    def _add_concept(self, name: str):
+        """Create concept dynamically if not present."""
+        new_id = name.lower().replace(" ", "_")
+        concept = {
+            "id": new_id,
+            "title": name,
+            "summary": f"This is an auto-generated summary for {name}.",
+            "sample_question": f"What is {name}?"
+        }
+        self.content.append(concept)
+        save_json(CONTENT_PATH, self.content)
+        return concept
+
+    # ---------------------------------------------------------
+    # Instructions Generator (LLM system prompt)
+    # ---------------------------------------------------------
+    def _build_instructions(self) -> str:
+        return f"""
+You are an **Active Recall Coach** (like Physics Wallah, but English only).
+
+Current Mode: {self.current_mode.upper()}
+Current Concept: {self.current_concept_id}
+
+Rules:
+- ALWAYS teach with high energy.
+- Keep responses short (voice assistant).
+- If user mentions a concept name, call switch_mode(concept_name=...).
+- If user says "quiz me" → switch_mode("quiz")
+- If user says "teach back" → switch_mode("teach_back")
+- If user says "explain" or "teach me" → switch_mode("learn")
+
+Concept Database:
+{json.dumps(self.content, indent=2)}
+"""
+
+    # ---------------------------------------------------------
+    # TOOL: SWITCH MODE + CONCEPT
+    # ---------------------------------------------------------
     @function_tool
-    async def switch_mode(self, session: AgentSession, mode: str):
-        """Switch to a different learning mode. Available modes: 'learn', 'quiz', 'teach_back'."""
-        logger.info(f"Switching to mode: {mode}")
-        
-        voice = get_voice_for_mode(mode)
-        # Update TTS voice
-        session.tts = murf.TTS(
-            voice=voice,
-            style="Conversation",
-            tokenizer=tokenize.basic.SentenceTokenizer(min_sentence_len=2),
-            text_pacing=True
-        )
-        
-        if mode == "learn":
-            return LearnAgent()
-        elif mode == "quiz":
-            return QuizAgent()
-        elif mode == "teach_back":
-            return TeachBackAgent()
-        else:
-            return "Invalid mode. Please choose learn, quiz, or teach_back."
+    async def switch_mode(
+        self,
+        ctx: RunContext,
+        mode: Annotated[Optional[str], "learn | quiz | teach_back"] = None,
+        concept_name: Annotated[Optional[str], "Any concept name, no ID needed"] = None,
+    ):
+        try:
+            # --- set mode ---
+            if mode:
+                self.current_mode = mode
 
-class LearnAgent(BaseTutorAgent):
-    def __init__(self):
-        content_str = json.dumps(CONTENT, indent=2)
-        super().__init__(
-            instructions=f"""You are a knowledgeable tutor in LEARN mode. 
-            Your goal is to explain the following concepts clearly to the user:
-            {content_str}
-            
-            Use the 'summary' field to explain. Be patient and clear.
-            If the user wants to switch modes, use the switch_mode tool.
-            """
-        )
+            # --- set concept by NAME, create if needed ---
+            if concept_name:
+                existing = self._get_concept(concept_name)
+                if not existing:
+                    existing = self._add_concept(concept_name)
+                self.current_concept_id = existing["id"]
 
-class QuizAgent(BaseTutorAgent):
-    def __init__(self):
-        content_str = json.dumps(CONTENT, indent=2)
-        super().__init__(
-            instructions=f"""You are a quiz master in QUIZ mode.
-            Your goal is to ask the user questions based on these concepts:
-            {content_str}
-            
-            Use the 'sample_question' field to ask questions. Wait for the user's answer and give feedback.
-            If the user wants to switch modes, use the switch_mode tool.
-            """
-        )
+            # if no concept chosen yet → auto-select first
+            if not self.current_concept_id and self.content:
+                self.current_concept_id = self.content[0]["id"]
 
-class TeachBackAgent(BaseTutorAgent):
-    def __init__(self):
-        content_str = json.dumps(CONTENT, indent=2)
-        super().__init__(
-            instructions=f"""You are a student in TEACH-BACK mode.
-            Your goal is to ask the user to explain concepts to YOU.
-            Concepts:
-            {content_str}
-            
-            Ask the user to explain a concept (e.g. "Can you explain Variables to me?").
-            Listen to their explanation and give qualitative feedback based on the 'summary'.
-            If the user wants to switch modes, use the switch_mode tool.
-            """
-        )
+            # --- change voice ---
+            if self.session_ref and self.session_ref.tts:
+                try:
+                    new_voice = self.voice_ids.get(self.current_mode, "en-US-matthew")
+                    await asyncio.to_thread(
+                        self.session_ref.tts.update_options,
+                        voice=new_voice
+                    )
+                except Exception as e:
+                    logger.error(f"Voice switch error: {e}")
 
-class GreeterAgent(Agent):
-    def __init__(self):
-        super().__init__(
-            instructions="""You are a friendly tutor assistant.
-            Greet the user and ask them which learning mode they would like to start with:
-            1. Learn (I will explain concepts)
-            2. Quiz (I will test your knowledge)
-            3. Teach-back (You explain to me)
-            
-            Wait for their response and then use the switch_mode tool to start the session.
-            """
-        )
+            # update instructions
+            self.instructions = self._build_instructions()
 
+            return f"Mode → {self.current_mode}, Concept → {self.current_concept_id}"
+
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return f"Error switching mode: {e}"
+
+    # ---------------------------------------------------------
+    # TOOL: Teach-back evaluation
+    # ---------------------------------------------------------
     @function_tool
-    async def switch_mode(self, session: AgentSession, mode: str):
-        """Start the session in the chosen mode. Available modes: 'learn', 'quiz', 'teach_back'."""
-        logger.info(f"Starting mode: {mode}")
-        
-        voice = get_voice_for_mode(mode)
-        session.tts = murf.TTS(
-            voice=voice,
-            style="Conversation",
-            tokenizer=tokenize.basic.SentenceTokenizer(min_sentence_len=2),
-            text_pacing=True
-        )
+    async def evaluate_teach_back(
+        self,
+        ctx: RunContext,
+        user_explanation: str,
+    ):
+        return "Evaluate the user explanation now."
 
-        if mode == "learn":
-            return LearnAgent()
-        elif mode == "quiz":
-            return QuizAgent()
-        elif mode == "teach_back":
-            return TeachBackAgent()
-        else:
-            return "Please choose a valid mode: learn, quiz, or teach_back."
+
+# ============================================================
+# LIVEKIT ENTRYPOINT
+# ============================================================
 
 def prewarm(proc: JobProcess):
     proc.userdata["vad"] = silero.VAD.load()
 
+
 async def entrypoint(ctx: JobContext):
-    # Logging setup
-    ctx.log_context_fields = {
-        "room": ctx.room.name,
-    }
+    try:
+        coach = ActiveRecallCoach()
 
-    session = AgentSession(
-        stt=deepgram.STT(model="nova-3"),
-        llm=google.LLM(
-                model="gemini-2.5-flash",
+        session = AgentSession(
+            stt=deepgram.STT(model="nova-3"),
+            llm=google.LLM(model="gemini-2.0-flash"),
+            tts=murf.TTS(voice=coach.voice_ids["learn"]),
+            vad=ctx.proc.userdata["vad"],
+            turn_detection=MultilingualModel(),
+            preemptive_generation=True,
+        )
+
+        coach.session_ref = session
+
+        await session.start(
+            agent=coach,
+            room=ctx.room,
+            room_input_options=RoomInputOptions(
+                noise_cancellation=noise_cancellation.BVC(),
             ),
-        tts=murf.TTS(
-                voice="en-US-matthew", 
-                style="Conversation",
-                tokenizer=tokenize.basic.SentenceTokenizer(min_sentence_len=2),
-                text_pacing=True
-            ),
-        turn_detection=MultilingualModel(),
-        vad=ctx.proc.userdata["vad"],
-        preemptive_generation=True,
-    )
+        )
 
-    usage_collector = metrics.UsageCollector()
+        await ctx.connect()
 
-    @session.on("metrics_collected")
-    def _on_metrics_collected(ev: MetricsCollectedEvent):
-        metrics.log_metrics(ev.metrics)
-        usage_collector.collect(ev.metrics)
+    except Exception:
+        logger.error(traceback.format_exc())
+        raise
 
-    async def log_usage():
-        summary = usage_collector.get_summary()
-        logger.info(f"Usage: {summary}")
-
-    ctx.add_shutdown_callback(log_usage)
-
-    await session.start(
-        agent=GreeterAgent(),
-        room=ctx.room,
-        room_input_options=RoomInputOptions(
-            noise_cancellation=noise_cancellation.BVC(),
-        ),
-    )
-
-    await ctx.connect()
 
 if __name__ == "__main__":
     cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint, prewarm_fnc=prewarm))

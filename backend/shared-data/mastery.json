@@ -1,0 +1,18 @@
+{
+  "prompt_engineering": {
+    "attempts": 2,
+    "successes": 0,
+    "mistakes": [
+      {
+        "answer": "And then",
+        "score": 5,
+        "timestamp": "2025-11-24T17:53:46.955824Z"
+      },
+      {
+        "answer": "Prompt engineering is a method where we specifically engineer the prompt to get a prowork Like, I will write my prompt in certain way so that the specific work get done by an LLM in a proper way.No vagueness. Nothing like that. Should be clear. The AI should be able to understand that.",
+        "score": 38,
+        "timestamp": "2025-11-24T17:56:04.955437Z"
+      }
+    ]
+  }
+}
