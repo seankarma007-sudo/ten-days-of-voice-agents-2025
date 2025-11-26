@@ -1,0 +1,44 @@
+{
+    "faqs": [
+        {
+            "question": "What products does Blue Tokai offer?",
+            "answer": "Blue Tokai offers roasted coffee beans, ground coffee, cold brews, ready-to-drink cans, coffee equipment, and subscription plans."
+        },
+        {
+            "question": "Do you ship across India?",
+            "answer": "Yes! Blue Tokai ships pan-India with typical delivery times between 2–5 days depending on your location."
+        },
+        {
+            "question": "What grind size should I choose?",
+            "answer": "Choose fine for espresso, medium-fine for Moka pot, medium for pour-over, and coarse for French press or cold brew."
+        },
+        {
+            "question": "Do you offer corporate or office coffee solutions?",
+            "answer": "Yes, Blue Tokai offers office coffee subscriptions, bean deliveries, machines, and bulk pricing for companies of all sizes."
+        },
+        {
+            "question": "How fresh is the coffee?",
+            "answer": "Every order is roasted after purchase and usually shipped within 24–48 hours for maximum freshness."
+        },
+        {
+            "question": "Do you have decaf coffee?",
+            "answer": "Yes! Blue Tokai offers chemical-free decaf using the Mountain Water Process."
+        },
+        {
+            "question": "Do you have stores or cafes?",
+            "answer": "Blue Tokai has cafés in major cities including Bangalore, Delhi, Mumbai, Hyderabad, Chennai, and more."
+        },
+        {
+            "question": "Do you offer coffee subscriptions?",
+            "answer": "Yes, weekly, bi-weekly, and monthly subscriptions are available with customizable grind size and quantity."
+        },
+        {
+            "question": "What are your best-selling beans?",
+            "answer": "Top picks include Attikan Estate, Vienna Roast, Silver Oak Café Blend, and the Monsoon Malabar."
+        },
+        {
+            "question": "Do you offer free samples?",
+            "answer": "Sample packs of 3–4 small bags are available for those who want to try different roasts."
+        }
+    ]
+}
