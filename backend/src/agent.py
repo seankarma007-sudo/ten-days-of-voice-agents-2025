@@ -76,7 +76,7 @@ You must gather these fields naturally:
 - team_size
 - timeline
 
-When the user signals the end (e.g., “that’s all”, “done”, “thanks”), do this:
+When the user signals the end (e.g., “that's all”, “done”, “thanks”), do this:
 - Summarize the lead.
 - Call save_lead with the dictionary of collected fields.
 
