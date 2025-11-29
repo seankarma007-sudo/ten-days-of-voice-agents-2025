@@ -29,31 +29,45 @@ export const WelcomeView = ({
   ref,
 }: React.ComponentProps<'div'> & WelcomeViewProps) => {
   return (
-    <div ref={ref}>
-      <section className="bg-background flex flex-col items-center justify-center text-center">
-        <WelcomeImage />
+    <div ref={ref} className="bg-background text-foreground min-h-screen flex flex-col items-center justify-center">
+      <section className="flex flex-col items-center justify-center text-center p-8 border border-primary/20 rounded-lg bg-card/50 shadow-[0_0_50px_rgba(255,0,0,0.1)]">
+        <div className="mb-6 text-primary animate-pulse">
+          <svg
+            width="64"
+            height="64"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="size-16"
+          >
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+          </svg>
+        </div>
 
-        <p className="text-foreground max-w-prose pt-1 leading-6 font-medium">
-          Chat live with your voice AI agent
+        <h1 className="text-4xl font-bold text-primary text-glow mb-4 tracking-widest uppercase font-mono">
+          Enter the Cursed Realm
+        </h1>
+
+        <p className="text-muted-foreground max-w-prose pt-1 leading-6 font-medium mb-8">
+          Dare to speak with the Game Master?
         </p>
 
-        <Button variant="primary" size="lg" onClick={onStartCall} className="mt-6 w-64 font-mono">
+        <Button
+          variant="destructive"
+          size="lg"
+          onClick={onStartCall}
+          className="w-64 font-mono text-lg tracking-wider border-2 border-primary hover:bg-primary/20 hover:text-primary transition-all duration-300 shadow-[0_0_20px_rgba(220,38,38,0.5)]"
+        >
           {startButtonText}
         </Button>
       </section>
 
       <div className="fixed bottom-5 left-0 flex w-full items-center justify-center">
-        <p className="text-muted-foreground max-w-prose pt-1 text-xs leading-5 font-normal text-pretty md:text-sm">
-          Need help getting set up? Check out the{' '}
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
-            href="https://docs.livekit.io/agents/start/voice-ai/"
-            className="underline"
-          >
-            Voice AI quickstart
-          </a>
-          .
+        <p className="text-muted-foreground/50 text-xs font-mono">
+          Survive the night... if you can.
         </p>
       </div>
     </div>

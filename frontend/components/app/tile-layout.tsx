@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 
 const MotionContainer = motion.create('div');
 
-const ANIMATION_TRANSITION = {
+const ANIMATION_TRANSITION: any = {
   type: 'spring',
   stiffness: 675,
   damping: 75,
@@ -71,9 +71,10 @@ export function useLocalTrackRef(source: Track.Source) {
 
 interface TileLayoutProps {
   chatOpen: boolean;
+  className?: string;
 }
 
-export function TileLayout({ chatOpen }: TileLayoutProps) {
+export function TileLayout({ chatOpen, className }: TileLayoutProps) {
   const {
     state: agentState,
     audioTrack: agentAudioTrack,
@@ -92,7 +93,7 @@ export function TileLayout({ chatOpen }: TileLayoutProps) {
   const videoHeight = agentVideoTrack?.publication.dimensions?.height ?? 0;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-8 bottom-32 z-50 md:top-12 md:bottom-40">
+    <div className={cn("pointer-events-none z-50", className || "fixed inset-x-0 top-8 bottom-32 md:top-12 md:bottom-40")}>
       <div className="relative mx-auto h-full max-w-2xl px-4 md:px-0">
         <div className={cn(classNames.grid)}>
           {/* Agent */}
