@@ -1,4 +1,4 @@
-# Day 9 – Agentic Commerce Protocol
+# Day 9 – E-commerce Agent (Based on the Agentic Commerce Protocol)
 
 Today you will build a **voice-driven shopping assistant** that follows a very lite version of the [Agentic Commerce Protocol (ACP)](https://www.agenticcommerce.dev/).
 
@@ -303,7 +303,7 @@ Then gradually move toward ACP-inspired structure and UI once the basics are sol
 -----
 
 - Step 1: You only need the **primary goal** to complete Day 9; the **Advanced Goals** are for going the extra mile.
-- Step 2: **Successfully connect to Agentic Commerce Protocol Agent** in your browser, browse product catalog and place order.
+- Step 2: **Successfully connect to E-commerce Agent** in your browser, browse product catalog and place order.
 - Step 3: **Record a short video** of your session with the agent and show the order JSON file.
 - Step 4: **Post the video on LinkedIn** with a description of what you did for the task on Day 9. Also, mention that you are building voice agent using the fastest TTS API - Murf Falcon. Mention that you are part of the **“Murf AI Voice Agent Challenge”** and don't forget to tag the official Murf AI handle. Also, use hashtags **#MurfAIVoiceAgentsChallenge** and **#10DaysofAIVoiceAgents**
 
