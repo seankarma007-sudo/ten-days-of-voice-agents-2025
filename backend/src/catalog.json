@@ -1,0 +1,77 @@
+[
+    {
+        "id": "mug-001",
+        "name": "Stoneware Coffee Mug",
+        "description": "Minimalist ceramic mug with matte finish.",
+        "price": 800,
+        "currency": "INR",
+        "category": "mug",
+        "color": "white"
+    },
+    {
+        "id": "mug-002",
+        "name": "Blue Ocean Mug",
+        "description": "Blue glazed mug with wide grip handle.",
+        "price": 950,
+        "currency": "INR",
+        "category": "mug",
+        "color": "blue"
+    },
+    {
+        "id": "hoodie-001",
+        "name": "Classic Black Hoodie",
+        "description": "Soft fleece hoodie with front pocket.",
+        "price": 1499,
+        "currency": "INR",
+        "category": "hoodie",
+        "color": "black",
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ]
+    },
+    {
+        "id": "hoodie-002",
+        "name": "Grey Comfort Hoodie",
+        "description": "Lightweight grey hoodie suitable for daily wear.",
+        "price": 1299,
+        "currency": "INR",
+        "category": "hoodie",
+        "color": "grey",
+        "sizes": [
+            "M",
+            "L",
+            "XL"
+        ]
+    },
+    {
+        "id": "tshirt-001",
+        "name": "Basic White T-Shirt",
+        "description": "Premium cotton t-shirt.",
+        "price": 499,
+        "currency": "INR",
+        "category": "tshirt",
+        "color": "white",
+        "sizes": [
+            "M",
+            "L",
+            "XL"
+        ]
+    },
+    {
+        "id": "tshirt-002",
+        "name": "Black Round-Neck T-Shirt",
+        "description": "Casual black t-shirt suitable for daily wear.",
+        "price": 599,
+        "currency": "INR",
+        "category": "tshirt",
+        "color": "black",
+        "sizes": [
+            "S",
+            "M",
+            "L"
+        ]
+    }
+]
