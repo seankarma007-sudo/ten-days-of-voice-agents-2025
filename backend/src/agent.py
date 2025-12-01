@@ -111,21 +111,21 @@ class Assistant(Agent):
             """,
         )
         self.game = ImprovGame()
-        self.session: Optional[AgentSession] = None
+        self._session: Optional[AgentSession] = None
 
     async def on_start(self, session: AgentSession):
-        self.session = session
+        self._session = session
         # Start the intro immediately
         await self.speak_intro()
 
     async def speak_intro(self):
         intro_text = "Welcome to the Improv Battle Arena! I'm your host, the AI with the wry eye. Let's get this show on the road! First things first, what's your name, challenger?"
-        await self.session.response.say(intro_text)
+        await self._session.response.say(intro_text)
 
     async def start_round(self):
         scenario = self.game.current_scenario
         prompt = f"Round {self.game.current_round}! Here is your scenario: {scenario.to_prompt()} ... And... ACTION!"
-        await self.session.response.say(prompt)
+        await self._session.response.say(prompt)
 
     async def provide_reaction(self, user_text: str):
         # Generate reaction using LLM context (handled by standard Agent logic, but we guide it via instructions)
@@ -135,7 +135,7 @@ class Assistant(Agent):
 
     async def end_show(self):
         summary = "That's a wrap! You were fantastic. I loved the energy. Thanks for playing Improv Battle! Goodnight!"
-        await self.session.response.say(summary)
+        await self._session.response.say(summary)
         # We'll disconnect after the speech is done in on_agent_speech_stopped
 
     def update_context_for_phase(self):
@@ -147,6 +147,7 @@ def prewarm(proc: JobProcess):
 
 async def entrypoint(ctx: JobContext):
     ctx.log_context_fields = {"room": ctx.room.name}
+    await ctx.connect()
 
     session = AgentSession(
         stt=deepgram.STT(model="nova-3"),
@@ -167,14 +168,17 @@ async def entrypoint(ctx: JobContext):
     # --- Event Handlers ---
 
     @session.on("user_speech_committed")
-    def on_user_speech_committed(msg: stt.Transcription):
+    def on_user_speech_committed(msg):
         # We use this to capture the user's name in the intro phase if needed
         # or just log what they said.
         # The actual turn completion is better for game flow.
         pass
 
     @session.on("user_turn_completed")
-    async def on_user_turn_completed(msg: stt.Transcription):
+    def on_user_turn_completed(msg):
+        asyncio.create_task(handle_user_turn(msg))
+
+    async def handle_user_turn(msg):
         user_text = msg.segments[0].text if msg.segments else ""
         logger.info(f"User turn completed: {user_text} | Phase: {assistant.game.phase}")
 
@@ -211,7 +215,10 @@ async def entrypoint(ctx: JobContext):
             pass
 
     @session.on("agent_speech_stopped")
-    async def on_agent_speech_stopped(ev):
+    def on_agent_speech_stopped(ev):
+        asyncio.create_task(handle_agent_speech_stopped(ev))
+
+    async def handle_agent_speech_stopped(ev):
         # Handle transitions AFTER the agent finishes speaking
         logger.info(f"Agent speech stopped. Phase: {assistant.game.phase}")
         
@@ -237,12 +244,11 @@ async def entrypoint(ctx: JobContext):
             noise_cancellation=noise_cancellation.BVC(),
         ),
     )
-    
+
     # Trigger on_start manually since the event might not fire exactly how we want with the custom setup
     # Actually, session.start() doesn't trigger on_start on the agent instance automatically in this structure
     # unless we register it.
     await assistant.on_start(session)
-    await ctx.connect()
 
 if __name__ == "__main__":
     cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint, prewarm_fnc=prewarm))

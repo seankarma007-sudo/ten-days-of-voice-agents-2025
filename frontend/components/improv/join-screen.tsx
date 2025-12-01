@@ -1,57 +1,55 @@
 import React, { useState } from 'react';
 
 interface JoinScreenProps {
-    onJoin: (name: string) => void;
+  onJoin: (name: string) => void;
 }
 
 export function JoinScreen({ onJoin }: JoinScreenProps) {
-    const [name, setName] = useState('');
+  const [name, setName] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (name.trim()) {
-            onJoin(name.trim());
-        }
-    };
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (name.trim()) {
+      onJoin(name.trim());
+    }
+  };
 
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--neon-bg)] p-4 relative overflow-hidden">
-            {/* Scanline Overlay */}
-            <div className="absolute inset-0 scanlines z-10 opacity-20 pointer-events-none"></div>
+  return (
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[var(--neon-bg)] p-4">
+      {/* Scanline Overlay */}
+      <div className="scanlines pointer-events-none absolute inset-0 z-10 opacity-20"></div>
 
-            <div className="z-20 w-full max-w-md">
-                <div className="neon-border bg-black/80 p-8 rounded-lg text-center backdrop-blur-sm transform transition-all hover:scale-[1.02]">
-                    <h1 className="text-4xl font-bold mb-8 text-white neon-text tracking-wider uppercase italic">
-                        Improv Battle
-                    </h1>
+      <div className="z-20 w-full max-w-md">
+        <div className="neon-border transform rounded-lg bg-black/80 p-8 text-center backdrop-blur-sm transition-all hover:scale-[1.02]">
+          <h1 className="neon-text mb-8 text-4xl font-bold tracking-wider text-white uppercase italic">
+            Improv Battle
+          </h1>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="relative group">
-                            <input
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="ENTER PLAYER NAME"
-                                className="w-full bg-transparent border-b-2 border-[var(--neon-secondary)] text-[var(--neon-secondary)] text-xl py-2 px-4 focus:outline-none focus:border-[var(--neon-primary)] transition-colors placeholder-gray-600 font-mono text-center uppercase"
-                                autoFocus
-                            />
-                            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[var(--neon-primary)] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={!name.trim()}
-                            className="w-full py-4 px-6 bg-transparent border-2 border-[var(--neon-primary)] text-[var(--neon-primary)] font-bold text-xl uppercase tracking-widest hover:bg-[var(--neon-primary)] hover:text-white transition-all duration-300 neon-text disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95"
-                        >
-                            Start Battle
-                        </button>
-                    </form>
-
-                    <div className="mt-8 text-xs text-gray-500 font-mono">
-                        INSERT COIN TO PLAY
-                    </div>
-                </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="group relative">
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="ENTER PLAYER NAME"
+                className="w-full border-b-2 border-[var(--neon-secondary)] bg-transparent px-4 py-2 text-center font-mono text-xl text-[var(--neon-secondary)] uppercase placeholder-gray-600 transition-colors focus:border-[var(--neon-primary)] focus:outline-none"
+                autoFocus
+              />
+              <div className="absolute bottom-0 left-0 h-0.5 w-full scale-x-0 transform bg-[var(--neon-primary)] transition-transform duration-300 group-hover:scale-x-100"></div>
             </div>
+
+            <button
+              type="submit"
+              disabled={!name.trim()}
+              className="neon-text w-full transform border-2 border-[var(--neon-primary)] bg-transparent px-6 py-4 text-xl font-bold tracking-widest text-[var(--neon-primary)] uppercase transition-all duration-300 hover:bg-[var(--neon-primary)] hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Start Battle
+            </button>
+          </form>
+
+          <div className="mt-8 font-mono text-xs text-gray-500">INSERT COIN TO PLAY</div>
         </div>
-    );
+      </div>
+    </div>
+  );
 }

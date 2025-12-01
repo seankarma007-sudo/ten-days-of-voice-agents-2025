@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useCallback } from "react";
-import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
-import { JoinScreen } from "@/components/improv/join-screen";
-import { GameScreen } from "@/components/improv/game-screen";
+import { useCallback, useState } from 'react';
+import { LiveKitRoom, RoomAudioRenderer } from '@livekit/components-react';
+import { GameScreen } from '@/components/improv/game-screen';
+import { JoinScreen } from '@/components/improv/join-screen';
 
 export default function Page() {
   const [gameState, setGameState] = useState<'joined' | 'playing'>('joined');
@@ -15,13 +15,15 @@ export default function Page() {
     setPlayerName(name);
 
     try {
-      const response = await fetch(`/api/token?room=improv-${Math.random().toString(36).substring(7)}&username=${encodeURIComponent(name)}`);
+      const response = await fetch(
+        `/api/token?room=improv-${Math.random().toString(36).substring(7)}&username=${encodeURIComponent(name)}`
+      );
       const data = await response.json();
       setToken(data.accessToken);
       setUrl(data.url);
       setGameState('playing');
     } catch (e) {
-      console.error("Failed to join:", e);
+      console.error('Failed to join:', e);
     }
   }, []);
 

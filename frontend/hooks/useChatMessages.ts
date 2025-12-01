@@ -19,7 +19,8 @@ function transcriptionToChatMessage(textStream: TextStreamData, room: Room): Rec
         : Array.from(room.remoteParticipants.values()).find(
             (p) => p.identity === textStream.participantInfo.identity
           ),
-  };
+    editTimestamp: undefined,
+  } as ReceivedChatMessage;
 }
 
 export function useChatMessages() {

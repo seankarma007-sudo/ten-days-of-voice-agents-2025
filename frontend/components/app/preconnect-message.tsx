@@ -1,11 +1,11 @@
 'use client';
 
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { type ReceivedChatMessage } from '@livekit/components-react';
 import { ShimmerText } from '@/components/livekit/shimmer-text';
 import { cn } from '@/lib/utils';
 
-const MotionMessage = motion.create('p');
+const MotionMessage = motion.p;
 
 const VIEW_MOTION_PROPS = {
   variants: {

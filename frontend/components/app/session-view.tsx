@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import type { AppConfig } from '@/app-config';
 import { ChatTranscript } from '@/components/app/chat-transcript';
 import { PreConnectMessage } from '@/components/app/preconnect-message';
@@ -16,7 +16,7 @@ import { useDebugMode } from '@/hooks/useDebug';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '../livekit/scroll-area/scroll-area';
 
-const MotionBottom = motion.create('div');
+const MotionBottom = motion.div;
 
 const IN_DEVELOPMENT = process.env.NODE_ENV !== 'production';
 const BOTTOM_VIEW_MOTION_PROPS = {
