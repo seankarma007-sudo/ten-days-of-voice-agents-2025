@@ -16,7 +16,7 @@ from livekit.agents import (
     cli,
     metrics,
     tokenize,
-    transcription,
+    stt,
 )
 from livekit.plugins import murf, silero, google, deepgram, noise_cancellation
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
@@ -167,14 +167,14 @@ async def entrypoint(ctx: JobContext):
     # --- Event Handlers ---
 
     @session.on("user_speech_committed")
-    def on_user_speech_committed(msg: transcription.Transcription):
+    def on_user_speech_committed(msg: stt.Transcription):
         # We use this to capture the user's name in the intro phase if needed
         # or just log what they said.
         # The actual turn completion is better for game flow.
         pass
 
     @session.on("user_turn_completed")
-    async def on_user_turn_completed(msg: transcription.Transcription):
+    async def on_user_turn_completed(msg: stt.Transcription):
         user_text = msg.segments[0].text if msg.segments else ""
         logger.info(f"User turn completed: {user_text} | Phase: {assistant.game.phase}")
 
