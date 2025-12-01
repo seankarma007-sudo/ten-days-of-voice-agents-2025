@@ -242,7 +242,6 @@ async def entrypoint(ctx: JobContext):
     # Actually, session.start() doesn't trigger on_start on the agent instance automatically in this structure
     # unless we register it.
     await assistant.on_start(session)
-
     await ctx.connect()
 
 if __name__ == "__main__":
